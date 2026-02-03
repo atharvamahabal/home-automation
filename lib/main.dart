@@ -104,7 +104,8 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
       portController.text = prefs.getString('port') ?? '1883';
       topicController.text =
           prefs.getString('topic') ?? 'flutter/home_automation';
-      bool shouldAutoConnect = prefs.getBool('shouldAutoConnect') ?? false;
+      // Default to true so it connects automatically on first run
+      bool shouldAutoConnect = prefs.getBool('shouldAutoConnect') ?? true;
       if (shouldAutoConnect) {
         _connect();
       }

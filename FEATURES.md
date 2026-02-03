@@ -6,7 +6,7 @@ This document outlines the current features of the Home Automation app and provi
 
 ### 1. Connection Management
 - **MQTT Support**: Connect to any MQTT broker (default: `broker.hivemq.com`).
-- **Auto-Connect**: Automatically connects on app startup if previously connected.
+- **Auto-Connect**: Automatically connects on app startup (enabled by default).
 - **Auto-Reconnect**: Automatically attempts to reconnect if the connection is lost.
 - **Persistence**: Remembers broker details (IP, Port, Topic) across app restarts.
 - **Status Feedback**: Visual indicators for connection status (Green/Red) and real-time logs.
