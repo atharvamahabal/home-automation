@@ -663,12 +663,20 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(8.0),
                               color: Colors.grey[200],
-                              child: Text(
-                                'Topic: ${topicController.text}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Broker: ${ipController.text}:${portController.text}',
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  Text(
+                                    'Topic: ${topicController.text}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
                             ),
                             Expanded(
