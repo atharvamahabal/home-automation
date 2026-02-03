@@ -295,7 +295,12 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
     final topic = topicController.text.trim();
 
     try {
-      client!.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+      client!.publishMessage(
+        topic,
+        MqttQos.atLeastOnce,
+        builder.payload!,
+        retain: true,
+      );
       _log('Sent: $message');
     } catch (e) {
       _log('Error publishing: $e');
