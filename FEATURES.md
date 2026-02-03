@@ -5,7 +5,7 @@ This document outlines the current features of the Home Automation app and provi
 ## 📱 Current Features
 
 ### 1. Connection Management
-- **MQTT Support**: Connect to any MQTT broker (default: `broker.hivemq.com`).
+- **MQTT Support**: Connect to any MQTT broker (default: `broker.emqx.io`).
 - **Auto-Connect**: Automatically connects on app startup if previously connected.
 - **Auto-Reconnect**: Automatically attempts to reconnect if the connection is lost.
 - **Persistence**: Remembers broker details (IP, Port, Topic) across app restarts.
