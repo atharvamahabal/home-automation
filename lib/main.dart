@@ -89,7 +89,34 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
   @override
   void initState() {
     super.initState();
-    _loadDevices();
+    _loadAllData();
+  }
+
+  Future<void> _loadAllData() async {
+    await _loadDevices();
+    await _loadConnectionSettings();
+  }
+
+  Future<void> _loadConnectionSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      ipController.text = prefs.getString('broker') ?? 'broker.hivemq.com';
+      portController.text = prefs.getString('port') ?? '1883';
+      topicController.text =
+          prefs.getString('topic') ?? 'flutter/home_automation';
+      bool shouldAutoConnect = prefs.getBool('shouldAutoConnect') ?? false;
+      if (shouldAutoConnect) {
+        _connect();
+      }
+    });
+  }
+
+  Future<void> _saveConnectionSettings(bool autoConnect) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('broker', ipController.text.trim());
+    await prefs.setString('port', portController.text.trim());
+    await prefs.setString('topic', topicController.text.trim());
+    await prefs.setBool('shouldAutoConnect', autoConnect);
   }
 
   @override
@@ -177,9 +204,11 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
 
     client!.logging(on: false);
     client!.keepAlivePeriod = 20;
+    client!.autoReconnect = true;
     client!.onDisconnected = _onDisconnected;
     client!.onConnected = _onConnected;
     client!.onSubscribed = _onSubscribed;
+    client!.onAutoReconnect = _onAutoReconnect;
 
     final connMess = MqttConnectMessage()
         .withClientIdentifier(
@@ -194,6 +223,7 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
     try {
       _log('Connecting to $broker:$port...');
       await client!.connect();
+      _saveConnectionSettings(true);
     } on NoConnectionException catch (e) {
       _log('Client exception: $e');
       client!.disconnect();
@@ -239,12 +269,17 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
     _log('Disconnected');
   }
 
+  void _onAutoReconnect() {
+    _log('Auto-reconnecting...');
+  }
+
   void _onSubscribed(String topic) {
     _log('Subscribed to $topic');
   }
 
   void _disconnect() {
     client?.disconnect();
+    _saveConnectionSettings(false);
   }
 
   void _publish(String message) {

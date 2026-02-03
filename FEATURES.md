@@ -5,9 +5,11 @@ This document outlines the current features of the Home Automation app and provi
 ## 📱 Current Features
 
 ### 1. Connection Management
-*   **Broker Configuration**: Connect to any MQTT broker (default: `broker.hivemq.com`).
-*   **Dynamic Settings**: Configure IP, Port, and Topic directly from the UI.
-*   **Status Monitoring**: Real-time connection status (Green = Connected, Red = Disconnected).
+- **MQTT Support**: Connect to any MQTT broker (default: `broker.hivemq.com`).
+- **Auto-Connect**: Automatically connects on app startup if previously connected.
+- **Auto-Reconnect**: Automatically attempts to reconnect if the connection is lost.
+- **Persistence**: Remembers broker details (IP, Port, Topic) across app restarts.
+- **Status Feedback**: Visual indicators for connection status (Green/Red) and real-time logs.
 
 ### 2. Device Control (Dynamic Grid)
 *   **Dynamic Device Addition**: Add devices of different types without coding.
