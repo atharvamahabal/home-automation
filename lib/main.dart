@@ -607,6 +607,9 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
                                                       },
                                                       child: const Text(
                                                         'Delete',
+                                                        style: TextStyle(
+                                                          color: Colors.red,
+                                                        ),
                                                       ),
                                                     ),
                                                   ],
@@ -625,7 +628,7 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
                                                     device.isOn,
                                                   ),
                                                 ),
-                                                const SizedBox(height: 10),
+                                                const SizedBox(height: 8),
                                                 Text(
                                                   device.name,
                                                   style: const TextStyle(
@@ -633,12 +636,14 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
                                                     fontSize: 16,
                                                   ),
                                                 ),
+                                                const SizedBox(height: 4),
                                                 Text(
                                                   device.isOn ? 'ON' : 'OFF',
                                                   style: TextStyle(
                                                     color: device.isOn
                                                         ? Colors.green
                                                         : Colors.grey,
+                                                    fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
                                               ],
@@ -652,47 +657,52 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
                         ),
 
                         // Tab 2: Monitor
-                        Container(
-                          color: Colors.black12,
-                          child: receivedMessages.isEmpty
-                              ? const Center(
-                                  child: Text('No messages received yet'),
-                                )
-                              : ListView.builder(
-                                  itemCount: receivedMessages.length,
-                                  itemBuilder: (context, index) {
-                                    return Card(
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 8.0,
-                                        vertical: 4.0,
-                                      ),
-                                      child: ListTile(
-                                        leading: const Icon(Icons.message),
-                                        title: Text(receivedMessages[index]),
-                                      ),
-                                    );
-                                  },
+                        Column(
+                          children: [
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(8.0),
+                              color: Colors.grey[200],
+                              child: Text(
+                                'Topic: ${topicController.text}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
                                 ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Expanded(
+                              child: receivedMessages.isEmpty
+                                  ? const Center(
+                                      child: Text(
+                                        'No messages received yet.\nTry sending a command!',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      itemCount: receivedMessages.length,
+                                      itemBuilder: (context, index) {
+                                        return ListTile(
+                                          leading: const Icon(Icons.message),
+                                          title: Text(receivedMessages[index]),
+                                        );
+                                      },
+                                    ),
+                            ),
+                          ],
                         ),
 
                         // Tab 3: Logs
-                        Container(
-                          color: Colors.grey[200],
-                          child: ListView.builder(
-                            itemCount: logs.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0,
-                                  vertical: 2.0,
-                                ),
-                                child: Text(
-                                  logs[index],
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              );
-                            },
-                          ),
+                        ListView.builder(
+                          itemCount: logs.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Text(
+                                logs[index],
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
