@@ -76,7 +76,7 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
 
   // Controllers
   final TextEditingController ipController = TextEditingController(
-    text: 'broker.emqx.io',
+    text: 'broker.hivemq.com',
   );
   final TextEditingController portController = TextEditingController(
     text: '1883',
@@ -100,7 +100,7 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
   Future<void> _loadConnectionSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      ipController.text = prefs.getString('broker') ?? 'broker.emqx.io';
+      ipController.text = prefs.getString('broker') ?? 'broker.hivemq.com';
       portController.text = prefs.getString('port') ?? '1883';
       topicController.text =
           prefs.getString('topic') ?? 'flutter/home_automation';
