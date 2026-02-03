@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
@@ -175,6 +176,13 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
   void _removeDevice(String id) {
     setState(() {
       devices.removeWhere((d) => d.id == id);
+    });
+    _saveDevices();
+  }
+
+  void _renameDevice(Device device, String newName) {
+    setState(() {
+      device.name = newName;
     });
     _saveDevices();
   }
@@ -355,6 +363,107 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
     }
   }
 
+  Future<void> _launchUpdateUrl() async {
+    final Uri url = Uri.parse(
+      'https://drive.google.com/drive/u/0/folders/1r9y6M_M9VKJdUF6RMFUlIuW6eOJ6jdl8',
+    );
+    try {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        _log('Could not launch $url');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open update link')),
+          );
+        }
+      }
+    } catch (e) {
+      _log('Error launching URL: $e');
+    }
+  }
+
+  void _showRenameDialog(Device device) {
+    final TextEditingController renameController = TextEditingController(
+      text: device.name,
+    );
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rename Device'),
+        content: TextField(
+          controller: renameController,
+          decoration: const InputDecoration(labelText: 'New Name'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (renameController.text.isNotEmpty) {
+                _renameDevice(device, renameController.text);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeviceOptions(Device device) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Rename'),
+              onTap: () {
+                Navigator.pop(context);
+                _showRenameDialog(device);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Delete?'),
+                    content: Text('Remove ${device.name}?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _removeDevice(device.id);
+                        },
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showAddDeviceDialog() {
     String name = '';
     String type = 'Fan'; // Default
@@ -418,9 +527,14 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
+            icon: const Icon(Icons.system_update),
+            onPressed: _launchUpdateUrl,
+            tooltip: 'Update App',
+          ),
+          IconButton(
             icon: const Icon(Icons.add),
             onPressed: _showAddDeviceDialog,
-            tooltip: 'Configure Button',
+            tooltip: 'Add Device',
           ),
         ],
       ),
@@ -601,41 +715,8 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
                                           ).withOpacity(0.1),
                                           child: InkWell(
                                             onTap: () => _toggleDevice(device),
-                                            onLongPress: () {
-                                              // Confirm delete
-                                              showDialog(
-                                                context: context,
-                                                builder: (ctx) => AlertDialog(
-                                                  title: const Text('Delete?'),
-                                                  content: Text(
-                                                    'Remove ${device.name}?',
-                                                  ),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(ctx),
-                                                      child: const Text(
-                                                        'Cancel',
-                                                      ),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(ctx);
-                                                        _removeDevice(
-                                                          device.id,
-                                                        );
-                                                      },
-                                                      child: const Text(
-                                                        'Delete',
-                                                        style: TextStyle(
-                                                          color: Colors.red,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            },
+                                            onLongPress: () =>
+                                                _showDeviceOptions(device),
                                             child: Column(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
