@@ -243,8 +243,9 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
     _log('Connected');
 
     final topic = topicController.text.trim();
-    _log('Subscribing to $topic...');
-    client!.subscribe(topic, MqttQos.atLeastOnce);
+    _log('Subscribing to $topic/# ...');
+    // Subscribe to wildcard to receive messages for all subtopics (devices)
+    client!.subscribe('$topic/#', MqttQos.atLeastOnce);
 
     client!.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
       final recMess = c![0].payload as MqttPublishMessage;
@@ -282,7 +283,7 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
     _saveConnectionSettings(false);
   }
 
-  void _publish(String message) {
+  void _publish(String message, {String? subtopic}) {
     if (client?.connectionStatus?.state != MqttConnectionState.connected) {
       _log('Not connected, cannot send command');
       // For testing UI without connection, you might want to uncomment this:
@@ -292,7 +293,15 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
 
     final builder = MqttClientPayloadBuilder();
     builder.addString(message);
-    final topic = topicController.text.trim();
+    String topic = topicController.text.trim();
+    if (subtopic != null && subtopic.isNotEmpty) {
+      // Ensure no double slashes if topic ends with /
+      if (topic.endsWith('/')) {
+        topic = '$topic$subtopic';
+      } else {
+        topic = '$topic/$subtopic';
+      }
+    }
 
     try {
       client!.publishMessage(
@@ -301,7 +310,7 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
         builder.payload!,
         retain: true,
       );
-      _log('Sent: $message');
+      _log('Sent: $message to $topic');
     } catch (e) {
       _log('Error publishing: $e');
     }
@@ -312,8 +321,13 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
       device.isOn = !device.isOn;
     });
     _saveDevices();
-    final command = '${device.name} ${device.isOn ? "ON" : "OFF"}';
-    _publish(command);
+    // Sanitize device name for topic (e.g., "Fan 1" -> "fan_1")
+    final subtopic = device.name
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '_')
+        .toLowerCase();
+    final command = device.isOn ? "ON" : "OFF";
+    _publish(command, subtopic: subtopic);
   }
 
   // --- UI Helpers ---
@@ -668,18 +682,33 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(8.0),
                               color: Colors.grey[200],
-                              child: Column(
+                              child: Row(
                                 children: [
-                                  Text(
-                                    'Broker: ${ipController.text}:${portController.text}',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                  Text(
-                                    'Topic: ${topicController.text}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                  Expanded(
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          'Broker: ${ipController.text}:${portController.text}',
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        Text(
+                                          'Topic: ${topicController.text}/#',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
                                     ),
-                                    textAlign: TextAlign.center,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_sweep),
+                                    onPressed: () {
+                                      setState(() {
+                                        receivedMessages.clear();
+                                      });
+                                    },
+                                    tooltip: 'Clear Messages',
                                   ),
                                 ],
                               ),
@@ -706,16 +735,38 @@ class _HomeAutomationPageState extends State<HomeAutomationPage> {
                         ),
 
                         // Tab 3: Logs
-                        ListView.builder(
-                          itemCount: logs.length,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                              title: Text(
-                                logs[index],
-                                style: const TextStyle(fontSize: 12),
+                        Column(
+                          children: [
+                            if (logs.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        logs.clear();
+                                      });
+                                    },
+                                    icon: const Icon(Icons.delete_outline),
+                                    label: const Text('Clear Logs'),
+                                  ),
+                                ),
                               ),
-                            );
-                          },
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: logs.length,
+                                itemBuilder: (context, index) {
+                                  return ListTile(
+                                    title: Text(
+                                      logs[index],
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
