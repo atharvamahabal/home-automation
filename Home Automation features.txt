@@ -1,0 +1,22 @@
+  1. Connection Management
+      Broker Configuration  : Connect to any MQTT broker (default: `broker.hivemq.com`).
+      Dynamic Settings  : Configure IP, Port, and Topic directly from the UI.
+      Status Monitoring  : Real-time connection status (Green = Connected, Red = Disconnected).
+
+  2. Device Control (Dynamic Grid)
+      Dynamic Device Addition  : Add devices of different types without coding.
+          Fan  : Blue fan icon.
+          Light  : Orange lightbulb icon.
+          Other  : Generic device icon.
+      Auto-Naming  : Automatically handles duplicate names (e.g., "Fan", "Fan 1", "Fan 2").
+      Persistence  : Devices are saved locally using `shared_preferences` and restored on app launch.
+      Interactive Grid  :
+          Tap  : Toggles device ON/OFF and publishes MQTT message (e.g., `Fan 1 ON`).
+          Long Press  : Deletes the device.
+
+  3. Monitor & Logs
+      Monitor Tab  : View incoming MQTT messages in real-time.
+      Logs Tab  : Debug connection issues and track sent commands.
+      Custom Messages  : Send manual text messages to the MQTT topic for testing.
+
+ 
